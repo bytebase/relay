@@ -1,4 +1,4 @@
-module github.com/bytebase/webhook-transmitter
+module github.com/bytebase/relay
 
 go 1.19
 
