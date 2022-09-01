@@ -20,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -o relay \
     main.go
 
-FROM scratch
+FROM alpine:3.16.2
 
 WORKDIR /app
 

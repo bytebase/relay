@@ -48,7 +48,7 @@ func main() {
 		if !strings.HasPrefix(payload.Ref, *refPrefix) {
 			// We don't want to fail the delivery entirely since it would make the webhook
 			// look like not working on the GitHub interface.
-			return http.StatusAccepted, fmt.Sprintf(`The "ref" does not have the required prefix %q`, *refPrefix)
+			return http.StatusAccepted, fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, *refPrefix)
 		}
 
 		err = sendToLark(r.Context(), *larkURL, fmt.Sprintf("New commits have been pushed to %q: %s", payload.Ref, payload.Compare))
