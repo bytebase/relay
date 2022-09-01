@@ -18,7 +18,7 @@ import (
 
 func main() {
 	refPrefix := flag.String("ref-prefix", "refs/heads/", "The prefix for the ref")
-	larkURL := flag.String("lark-url", os.Getenv("LARK_URL"), "The Lark webhook URL")
+	larkURL := flag.String("lark-url", os.Getenv("LARK_URL"), "A comma separated list of Lark webhook URL")
 	flag.Parse()
 
 	if *larkURL == "" {
@@ -51,10 +51,15 @@ func main() {
 			return http.StatusAccepted, fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, *refPrefix)
 		}
 
-		err = sendToLark(r.Context(), *larkURL, fmt.Sprintf("New commits have been pushed to %q: %s", payload.Ref, payload.Compare))
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Failed to send to Lark: %v", err)
+		urlList := strings.Split(*larkURL, ",")
+
+		for _, url := range urlList {
+			err = sendToLark(r.Context(), url, fmt.Sprintf("New commits have been pushed to %q: %s", payload.Ref, payload.Compare))
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Sprintf("Failed to send to Lark %q: %v", url, err)
+			}
 		}
+
 		return http.StatusOK, "OK"
 	})
 	f.Run()
