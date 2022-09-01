@@ -1,8 +1,14 @@
-# relay
+# Relay
 
 A dead simple web server for forwarding GitHub webhook based on filters.
 
 As of now, only relaying push events with ref filter to Lark is supported.
+
+# Configure GitHub webhook
+
+Make sure to set the webhook content type as `application/json`.
+
+# Run
 
 ```sh
 $ go run main.go --ref-prefix="refs/heads/release/" --lark-url="https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx"
