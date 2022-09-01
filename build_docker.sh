@@ -7,7 +7,7 @@
 # exit when any command fails
 set -e
 
-echo "Start building Webhook Relay docker image ..."
+echo "Start building webhook Relay docker image ..."
 
 docker build -f ./Dockerfile\
     --build-arg GO_VERSION="$(go version)" \
@@ -16,13 +16,13 @@ docker build -f ./Dockerfile\
     --build-arg BUILD_USER="$(id -u -n)" \
     -t bytebase/relay .
 
-echo "${GREEN}Completed building Bytebase Webhook Relay docker image.${NC}"
+echo "${GREEN}Completed building Bytebase webhook Relay Docker image.${NC}"
 echo ""
 echo "Command to tag and push the image"
 echo ""
 echo "$ docker tag bytebase/relay latest; docker push bytebase/relay:latest"
 echo ""
-echo "Command to start Bytebase Webhook Relay on http://localhost:8080"
+echo "Command to start Bytebase webhook Relay on http://localhost:8080"
 echo ""
 echo "docker run --init --name relay --restart always --publish 8080:2830 bytebase/relay --ref-prefix=refs/heads/release/ --lark-url=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx"
 echo ""

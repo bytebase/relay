@@ -17,7 +17,7 @@ COPY . .
 
 # -ldflags="-w -s" means omit DWARF symbol table and the symbol table and debug information
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s" \
+    -trimpath \
     -o relay \
     main.go
 

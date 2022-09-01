@@ -12,11 +12,11 @@ $ go run main.go --ref-prefix="refs/heads/release/" --lark-url="https://open.fei
 $ export LARK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx
 $ go run main.go --ref-prefix="refs/heads/release/"
 
-# specify custom host:port
+# Specify custom host:port
 
-By default, the server runs on localhost:2830
+# By default, the server runs on localhost:2830
 
-$ FLAMEGO_ADDR=localhost:8080
+$ export FLAMEGO_ADDR=localhost:8080
 $ go run main.go --ref-prefix="refs/heads/release/" --lark-url="https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx"
 
 ```
