@@ -25,28 +25,22 @@ var (
 // e.g. If service foo posts the webhook event to path /foo,
 // You can register a sinker at path /foo to receive that webhook event payload.
 func Register(fs *flag.FlagSet, f *flamego.Flame, s Sinker, path string) {
-	sinksMu.Lock()
-	defer sinksMu.Unlock()
 	if s == nil {
 		panic("sink: Register sinker is nil")
 	}
 
-	list, has := sinks[path]
-	if has {
-		for _, item := range list {
-			if item == s {
-				panic("sink: Register called twice for sinker " + path)
-			}
+	sinksMu.Lock()
+	defer sinksMu.Unlock()
+	for _, item := range sinks[path] {
+		if item == s {
+			panic("sink: Register called twice for sinker " + path)
 		}
-		s.register(fs)
-		sinks[path] = append(list, s)
-	} else {
-		s.register(fs)
-		sinks[path] = []Sinker{s}
 	}
+	s.register(fs)
+	sinks[path] = append(sinks[path], s)
 }
 
-// Prepare prepares all registered sinks before running (e.g. validate flags)
+// Prepare prepares all registered sinks before running (e.g. validate flags).
 func Prepare() error {
 	sinksMu.Lock()
 	defer sinksMu.Unlock()

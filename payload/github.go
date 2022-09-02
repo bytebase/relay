@@ -1,6 +1,6 @@
 package payload
 
-type GitHub struct {
+type GitHubPushEvent struct {
 	Ref     string `json:"ref"`
 	Compare string `json:"compare"`
 }
