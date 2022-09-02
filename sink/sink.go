@@ -22,8 +22,8 @@ type Sinker interface {
 }
 
 var (
-	sinksMu sync.RWMutex
-	sinks   = make(map[string][]Sinker)
+	sinkersMu sync.RWMutex
+	sinkers   = make(map[string][]Sinker)
 )
 
 // Register registers the sinker for path.
@@ -34,24 +34,24 @@ func Register(fs *flag.FlagSet, f *flamego.Flame, s Sinker, path string) {
 		panic("sink: Register sinker is nil")
 	}
 
-	sinksMu.Lock()
-	defer sinksMu.Unlock()
-	for _, item := range sinks[path] {
+	sinkersMu.Lock()
+	defer sinkersMu.Unlock()
+	for _, item := range sinkers[path] {
 		if item == s {
 			panic("sink: Register called twice for sinker " + path)
 		}
 	}
 	s.register(fs)
-	sinks[path] = append(sinks[path], s)
+	sinkers[path] = append(sinkers[path], s)
 }
 
 // Prepare prepares all registered sinks before running (e.g. validate flags).
 func Prepare() error {
-	sinksMu.Lock()
-	defer sinksMu.Unlock()
+	sinkersMu.Lock()
+	defer sinkersMu.Unlock()
 
 	var result error
-	for _, sinkList := range sinks {
+	for _, sinkList := range sinkers {
 		for _, sink := range sinkList {
 			if err := sink.prepare(); err != nil {
 				result = multierror.Append(result, err)
@@ -64,7 +64,7 @@ func Prepare() error {
 // Process iterates over each sink registered for the path and let each sink process the payload.
 func Process(c context.Context, path string, payload interface{}) error {
 	var result error
-	if list := sinks[path]; list != nil {
+	if list := sinkers[path]; list != nil {
 		for _, s := range list {
 			if err := s.process(c, path, payload); err != nil {
 				result = multierror.Append(result, err)
