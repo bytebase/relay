@@ -11,9 +11,14 @@ import (
 
 // Sinker is the interface for receiving the webhook payload from the Hooker
 type Sinker interface {
+	// register registers itself to be used, common tasks include:
+	// 1. Declare flags
 	register(fs *flag.FlagSet)
+	// prepare performs validation checks before to be used, common tasks include:
+	// 1. Check flag values
 	prepare() error
-	send(c context.Context, path string, payload interface{}) error
+	// process processes the payload extracted by the Hooker
+	process(c context.Context, path string, payload interface{}) error
 }
 
 var (
@@ -56,11 +61,12 @@ func Prepare() error {
 	return result
 }
 
-func Send(c context.Context, path string, payload interface{}) error {
+// Process iterates over each sink registered for the path and let each sink process the payload.
+func Process(c context.Context, path string, payload interface{}) error {
 	var result error
 	if list := sinks[path]; list != nil {
 		for _, s := range list {
-			if err := s.send(c, path, payload); err != nil {
+			if err := s.process(c, path, payload); err != nil {
 				result = multierror.Append(result, err)
 			}
 		}

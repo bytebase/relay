@@ -17,8 +17,11 @@ import (
 )
 
 var (
+	_ Sinker = (*sinker)(nil)
+)
+
+var (
 	webhookURLs string
-	_           Sinker = (*sinker)(nil)
 )
 
 // NewLark creates a Lark sinker
@@ -40,10 +43,10 @@ func (sink *sinker) prepare() error {
 	return nil
 }
 
-func (sinker *sinker) send(c context.Context, path string, pi interface{}) error {
+func (sinker *sinker) process(c context.Context, path string, pi interface{}) error {
 	switch path {
 	case "/github":
-		p := pi.(payload.GitHub)
+		p := pi.(payload.GitHubPushEvent)
 		urlList := strings.Split(webhookURLs, ",")
 		for _, url := range urlList {
 			err := sendToLark(c, url, fmt.Sprintf("New commits have been pushed to %q: %s", p.Ref, p.Compare))

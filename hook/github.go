@@ -13,8 +13,11 @@ import (
 )
 
 var (
+	_ Hooker = (*hooker)(nil)
+)
+
+var (
 	refPrefix string
-	_         Hooker = (*hooker)(nil)
 )
 
 // NewGitHub creates a GitHub hooker
@@ -23,10 +26,6 @@ func NewGitHub() Hooker {
 }
 
 type hooker struct {
-}
-
-func (hooker *hooker) prepare() error {
-	return nil
 }
 
 func (hooker *hooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) {
@@ -42,7 +41,7 @@ func (hooker *hooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) 
 			return http.StatusBadRequest, "Not a push event"
 		}
 
-		var payload payload.GitHub
+		var payload payload.GitHubPushEvent
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Sprintf("Failed to decode request body: %v", err)
@@ -54,10 +53,14 @@ func (hooker *hooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) 
 			return http.StatusAccepted, fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, refPrefix)
 		}
 
-		if err := sink.Send(r.Context(), path, payload); err != nil {
+		if err := sink.Process(r.Context(), path, payload); err != nil {
 			return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
 		}
 
 		return http.StatusOK, "OK"
 	})
+}
+
+func (hooker *hooker) prepare() error {
+	return nil
 }

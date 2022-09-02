@@ -10,8 +10,13 @@ import (
 
 // Hooker is the interface for the webhook originator.
 type Hooker interface {
-	prepare() error
+	// register registers itself to be used, common tasks include:
+	// 1. Declare flags
+	// 2. Register router handler for the webhook event.
 	register(fs *flag.FlagSet, f *flamego.Flame, path string)
+	// prepare performs validation checks before to be used, common tasks include:
+	// 1. Check flag values
+	prepare() error
 }
 
 var (
@@ -27,22 +32,22 @@ func Register(fs *flag.FlagSet, f *flamego.Flame, h Hooker, path string) {
 		panic("hook: Register hooker is nil")
 	}
 
-	hooksMu.Lock()
-	defer hooksMu.Unlock()
-	if _, dup := hooks[path]; dup {
+	hookersMu.Lock()
+	defer hookersMu.Unlock()
+	if _, dup := hookers[path]; dup {
 		panic("hook: Register called twice for hooker " + path)
 	}
 	h.register(fs, f, path)
-	hooks[path] = h
+	hookers[path] = h
 }
 
 // Prepare prepares all registered hooks before running (e.g. validate flags).
 func Prepare() error {
-	hooksMu.Lock()
-	defer hooksMu.Unlock()
+	hookersMu.Lock()
+	defer hookersMu.Unlock()
 
 	var result error
-	for _, hook := range hooks {
+	for _, hook := range hookers {
 		if err := hook.prepare(); err != nil {
 			result = multierror.Append(result, err)
 		}

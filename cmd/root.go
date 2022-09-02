@@ -69,10 +69,10 @@ func Execute() error {
 
 func start(f *flamego.Flame) {
 	if err := hook.Prepare(); err != nil {
-		log.Fatalf("Failed to prepare hook: %v\n", err)
+		log.Fatalf("Failed to prepare hook: %v", err)
 	}
 	if err := sink.Prepare(); err != nil {
-		log.Fatalf("Failed to prepare sink: %v\n", err)
+		log.Fatalf("Failed to prepare sink: %v", err)
 	}
 	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())
