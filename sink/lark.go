@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	_ Sinker = (*sinker)(nil)
+	_ Sinker = (*larkSinker)(nil)
 )
 
 var (
@@ -26,24 +26,24 @@ var (
 
 // NewLark creates a Lark sinker
 func NewLark() Sinker {
-	return &sinker{}
+	return &larkSinker{}
 }
 
-type sinker struct {
+type larkSinker struct {
 }
 
-func (sinker *sinker) register(fs *flag.FlagSet) {
+func (sinker *larkSinker) register(fs *flag.FlagSet) {
 	fs.StringVar(&webhookURLs, "lark-urls", os.Getenv("LARK_URLS"), "A comma separated list of Lark webhook URLs")
 }
 
-func (sink *sinker) prepare() error {
+func (sink *larkSinker) prepare() error {
 	if webhookURLs == "" {
 		return fmt.Errorf(`the "--lark-urls" or "LARK_URLS" is required`)
 	}
 	return nil
 }
 
-func (sinker *sinker) process(c context.Context, path string, pi interface{}) error {
+func (sinker *larkSinker) process(c context.Context, path string, pi interface{}) error {
 	switch path {
 	case "/github":
 		p := pi.(payload.GitHubPushEvent)

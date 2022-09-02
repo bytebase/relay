@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ Hooker = (*hooker)(nil)
+	_ Hooker = (*githubHooker)(nil)
 )
 
 var (
@@ -22,13 +22,13 @@ var (
 
 // NewGitHub creates a GitHub hooker
 func NewGitHub() Hooker {
-	return &hooker{}
+	return &githubHooker{}
 }
 
-type hooker struct {
+type githubHooker struct {
 }
 
-func (hooker *hooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) {
+func (hooker *githubHooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) {
 	fs.StringVar(&refPrefix, "github-ref-prefix", "refs/heads/", "The prefix for the GitHub ref")
 
 	f.Post(path, func(r *http.Request) (int, string) {
@@ -61,6 +61,6 @@ func (hooker *hooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) 
 	})
 }
 
-func (hooker *hooker) prepare() error {
+func (hooker *githubHooker) prepare() error {
 	return nil
 }
