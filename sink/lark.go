@@ -24,6 +24,10 @@ var (
 	webhookURLs string
 )
 
+func init() {
+	flag.StringVar(&webhookURLs, "lark-urls", os.Getenv("LARK_URLS"), "A comma separated list of Lark webhook URLs")
+}
+
 // NewLark creates a Lark sinker
 func NewLark() Sinker {
 	return &larkSinker{}
@@ -32,18 +36,14 @@ func NewLark() Sinker {
 type larkSinker struct {
 }
 
-func (sinker *larkSinker) register(fs *flag.FlagSet) {
-	fs.StringVar(&webhookURLs, "lark-urls", os.Getenv("LARK_URLS"), "A comma separated list of Lark webhook URLs")
-}
-
-func (sink *larkSinker) prepare() error {
+func (sink *larkSinker) Mount() error {
 	if webhookURLs == "" {
 		return fmt.Errorf(`the "--lark-urls" or "LARK_URLS" is required`)
 	}
 	return nil
 }
 
-func (sinker *larkSinker) process(c context.Context, path string, pi interface{}) error {
+func (sinker *larkSinker) Process(c context.Context, path string, pi interface{}) error {
 	switch path {
 	case "/github":
 		p := pi.(payload.GitHubPushEvent)

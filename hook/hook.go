@@ -1,22 +1,24 @@
 package hook
 
 import (
+	"fmt"
+	"net/http"
 	"sync"
 
+	"github.com/bytebase/relay/sink"
 	"github.com/flamego/flamego"
 	"github.com/hashicorp/go-multierror"
-	flag "github.com/spf13/pflag"
 )
 
 // Hooker is the interface for the webhook originator.
 type Hooker interface {
-	// register registers itself to be used, common tasks include:
-	// 1. Declare flags
-	// 2. Register router handler for the webhook event.
-	register(fs *flag.FlagSet, f *flamego.Flame, path string)
-	// prepare performs validation checks before to be used, common tasks include:
-	// 1. Check flag values
-	prepare() error
+	// handler returns the hook handler, returns error if precondition
+	// fails such as invalid flag values.
+	// For the returned hook handler:
+	// - Returns http.StatusOK and payload if you want the coresponding sink list to process the payload.
+	// - Returns other 2xx code if you want to short-circuit the processing, but still indicate success.
+	// - Returns other HTTP code if you want to indicate error.
+	handler() (func(r *http.Request) (int, interface{}), error)
 }
 
 var (
@@ -24,33 +26,54 @@ var (
 	hookers   = make(map[string]Hooker)
 )
 
-// Register registers the hook under path.
-// e.g. If you register the foo hook at /foo, then you go to service foo's webhook
+// Mount mounts the hook and corresponding sink list under the given path.
+//
+// - If you mount the foo hook handler at /foo, then you go to service foo's webhook
 // setting page and configure the webhook to post events to <<Relay Host>>/foo.
-func Register(fs *flag.FlagSet, f *flamego.Flame, h Hooker, path string) {
+// - If you want the hook handler at /foo to pass the payload to sink [bar, baz], then
+// you pass the [bar, baz] sink list.
+//
+// e.g  hook.Mount(fs, f, "/foo", fooHook, [barSink, bazSink])
+func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 	if h == nil {
-		panic("hook: Register hooker is nil")
+		panic("hook: Mount hooker is nil")
 	}
 
 	hookersMu.Lock()
 	defer hookersMu.Unlock()
 	if _, dup := hookers[path]; dup {
-		panic("hook: Register called twice for hooker " + path)
+		panic("hook: Mount called twice for hooker " + path)
 	}
-	h.register(fs, f, path)
-	hookers[path] = h
-}
+	handler, err := h.handler()
+	if err != nil {
+		panic("hook: Failed to init handler " + err.Error())
+	}
 
-// Prepare prepares all registered hooks before running (e.g. validate flags).
-func Prepare() error {
-	hookersMu.Lock()
-	defer hookersMu.Unlock()
-
-	var result error
-	for _, hook := range hookers {
-		if err := hook.prepare(); err != nil {
-			result = multierror.Append(result, err)
+	for _, s := range ss {
+		if err := s.Mount(); err != nil {
+			panic("hook: Failed to mount sink " + err.Error())
 		}
 	}
-	return result
+
+	f.Post(path, func(r *http.Request) (int, string) {
+		code, payload := handler(r)
+
+		if code == http.StatusOK {
+			var result error
+			for _, s := range ss {
+				if err := s.Process(r.Context(), path, payload); err != nil {
+					result = multierror.Append(result, err)
+				}
+			}
+			if result != nil {
+				return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
+			}
+			return http.StatusOK, "OK"
+		}
+
+		// TODO(tianzhou): remove type assert
+		return code, payload.(string)
+	})
+
+	hookers[path] = h
 }

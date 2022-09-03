@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/bytebase/relay/payload"
-	"github.com/bytebase/relay/sink"
-	"github.com/flamego/flamego"
 	flag "github.com/spf13/pflag"
 )
 
@@ -20,6 +18,10 @@ var (
 	refPrefix string
 )
 
+func init() {
+	flag.StringVar(&refPrefix, "github-ref-prefix", "refs/heads/", "The prefix for the GitHub ref")
+}
+
 // NewGitHub creates a GitHub hooker
 func NewGitHub() Hooker {
 	return &githubHooker{}
@@ -28,10 +30,8 @@ func NewGitHub() Hooker {
 type githubHooker struct {
 }
 
-func (hooker *githubHooker) register(fs *flag.FlagSet, f *flamego.Flame, path string) {
-	fs.StringVar(&refPrefix, "github-ref-prefix", "refs/heads/", "The prefix for the GitHub ref")
-
-	f.Post(path, func(r *http.Request) (int, string) {
+func (hooker *githubHooker) handler() (func(r *http.Request) (int, interface{}), error) {
+	return func(r *http.Request) (int, interface{}) {
 		event := r.Header.Get("X-GitHub-Event")
 		if event == "ping" {
 			return http.StatusAccepted, "Pong"
@@ -53,14 +53,6 @@ func (hooker *githubHooker) register(fs *flag.FlagSet, f *flamego.Flame, path st
 			return http.StatusAccepted, fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, refPrefix)
 		}
 
-		if err := sink.Process(r.Context(), path, payload); err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
-		}
-
-		return http.StatusOK, "OK"
-	})
-}
-
-func (hooker *githubHooker) prepare() error {
-	return nil
+		return http.StatusOK, payload
+	}, nil
 }
