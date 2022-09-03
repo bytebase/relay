@@ -48,24 +48,6 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 	if err != nil {
 		panic("hook: Failed to init handler " + err.Error())
 	}
-<<<<<<< HEAD
-
-	f.Post(path, func(r *http.Request) (int, string) {
-		code, payload := handler(r)
-
-		if code == http.StatusOK {
-			var result error
-			for _, s := range ss {
-				if err := s.Process(r.Context(), path, payload); err != nil {
-					result = multierror.Append(result, err)
-				}
-			}
-			if result != nil {
-				return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
-			}
-			return http.StatusOK, ""
-		}
-=======
 
 	for _, s := range ss {
 		if err := s.Mount(); err != nil {
@@ -88,7 +70,6 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 			}
 			return http.StatusOK, ""
 		}
->>>>>>> 3e0449b (refactor: make modular)
 
 		// TODO(tianzhou): remove type assert
 		return code, payload.(string)
