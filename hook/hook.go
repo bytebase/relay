@@ -17,7 +17,7 @@ type Hooker interface {
 	// For the returned hook handler:
 	// - Returns http.StatusOK and payload if you want the coresponding sink list to process the payload.
 	// - Returns other 2xx code if you want to short-circuit the processing, but still indicate success.
-	// - Returns other http code if you want to indicate error.
+	// - Returns other HTTP code if you want to indicate error.
 	handler() (func(r *http.Request) (int, interface{}), error)
 }
 
