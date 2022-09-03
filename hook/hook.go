@@ -26,7 +26,7 @@ var (
 	hookers   = make(map[string]Hooker)
 )
 
-// Mount mounts the hook and corresponding sink list under path.
+// Mount mounts the hook and corresponding sink list under the given path.
 //
 // - If you mount the foo hook handler at /foo, then you go to service foo's webhook
 // setting page and configure the webhook to post events to <<Relay Host>>/foo.
@@ -68,7 +68,7 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 			if result != nil {
 				return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
 			}
-			return http.StatusOK, ""
+			return http.StatusOK, "OK"
 		}
 
 		// TODO(tianzhou): remove type assert
