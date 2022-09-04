@@ -30,29 +30,44 @@ func NewGitHub() Hooker {
 type githubHooker struct {
 }
 
-func (hooker *githubHooker) handler() (func(r *http.Request) (int, interface{}), error) {
-	return func(r *http.Request) (int, interface{}) {
+func (hooker *githubHooker) handler() (func(r *http.Request) Response, error) {
+	return func(r *http.Request) Response {
 		event := r.Header.Get("X-GitHub-Event")
 		if event == "ping" {
-			return http.StatusAccepted, "Pong"
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   "Pong",
+			}
 		}
 
 		if event != "push" {
-			return http.StatusBadRequest, "Not a push event"
+			return Response{
+				httpCode: http.StatusBadRequest,
+				detail:   "Not a push event",
+			}
 		}
 
 		var payload payload.GitHubPushEvent
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Failed to decode request body: %v", err)
+			return Response{
+				httpCode: http.StatusInternalServerError,
+				err:      fmt.Errorf("failed to decode request body: %w", err),
+			}
 		}
 
 		if !strings.HasPrefix(payload.Ref, refPrefix) {
 			// We don't want to fail the delivery entirely since it would make the webhook
 			// look like not working on the GitHub interface.
-			return http.StatusAccepted, fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, refPrefix)
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   fmt.Sprintf(`The ref %q does not have the required prefix %q`, payload.Ref, refPrefix),
+			}
 		}
 
-		return http.StatusOK, payload
+		return Response{
+			httpCode: http.StatusOK,
+			payload:  payload,
+		}
 	}, nil
 }
