@@ -22,7 +22,7 @@ func RedactLastN(s string, n int) string {
 	return string(out)
 }
 
-// Parse host
+// ParseHost parses the given host string and returns the parsed host address and port number.
 func ParseHost(host string) (h string, p int, err error) {
 	if host == "" {
 		return "", 0, fmt.Errorf("empty host")
