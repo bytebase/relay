@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 
 	"github.com/bytebase/relay/hook"
 	"github.com/bytebase/relay/sink"
+	"github.com/bytebase/relay/util"
 	"github.com/flamego/flamego"
 	flag "github.com/spf13/pflag"
 )
@@ -55,15 +54,13 @@ func main() {
 
 	h := "localhost"
 	p := 5678
+	var err error
 	if host != "" {
-		fields := strings.SplitN(host, ":", 2)
-		h = fields[0]
-		port, err := strconv.Atoi(fields[1])
+		h, p, err = util.ParseHost(host)
 		if err != nil {
-			fmt.Printf("Port is not a number: %s", fields[1])
+			fmt.Printf(err.Error())
 			os.Exit(1)
 		}
-		p = port
 	}
 
 	f := flamego.Classic()
