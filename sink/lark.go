@@ -49,7 +49,8 @@ func (sinker *larkSinker) Process(c context.Context, path string, pi interface{}
 		p := pi.(payload.GitHubPushEvent)
 		urlList := strings.Split(webhookURLs, ",")
 		for _, url := range urlList {
-			err := sendToLark(c, url, fmt.Sprintf("New commits have been pushed to %q: %s", p.Ref, p.Compare))
+			err := sendToLark(c, url, fmt.Sprintf("New commits have been pushed to %q by %s(%s) at %s\nTitle: %s\nDiff: %s",
+				p.Ref, p.HeadCommit.Author.Name, p.HeadCommit.Author.Email, p.HeadCommit.Timestamp, p.HeadCommit.Message, p.Compare))
 			if err != nil {
 				return fmt.Errorf("failed to send to Lark %q: %w", util.RedactLastN(url, 12), err)
 			}
