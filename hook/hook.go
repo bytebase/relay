@@ -15,10 +15,9 @@ import (
 // - Sets other 2xx code if you want to short-circuit the processing, but you don't want to indicate
 //   an error (e.g. skip the processing). You can optionally set a detail to explain the reason.
 //   This will show up on the webhook sender's page.
-// - Sets other HTTP code and err if you do want to indicate an error.
+// - Sets other HTTP code and error detail if you do want to indicate an error.
 type Response struct {
 	httpCode int
-	err      error
 	detail   string
 	payload  interface{}
 }
@@ -77,10 +76,6 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 				return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
 			}
 			return http.StatusOK, "OK"
-		}
-
-		if resp.err != nil {
-			return resp.httpCode, resp.err.Error()
 		}
 		return resp.httpCode, resp.detail
 	})

@@ -52,7 +52,7 @@ func (hooker *githubHooker) handler() (func(r *http.Request) Response, error) {
 		if err != nil {
 			return Response{
 				httpCode: http.StatusInternalServerError,
-				err:      fmt.Errorf("failed to decode request body: %w", err),
+				detail:   fmt.Sprintf("Failed to decode request body: %q", err),
 			}
 		}
 
