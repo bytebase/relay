@@ -58,7 +58,7 @@ func main() {
 	if host != "" {
 		h, p, err = util.ParseHost(host)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Printf("%s\n", err.Error())
 			os.Exit(1)
 		}
 	}
