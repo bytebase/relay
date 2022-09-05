@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/bytebase/relay/hook"
@@ -40,8 +42,29 @@ ________________________________________________________________________________
 `
 )
 
+var (
+	host string
+)
+
+func init() {
+	flag.StringVar(&host, "host", os.Getenv("RELAY_HOST"), "The hostname:port endpoint where Relay runs, default to localhost:5678")
+}
+
 func main() {
 	flag.Parse()
+
+	h := "localhost"
+	p := 5678
+	if host != "" {
+		fields := strings.SplitN(host, ":", 2)
+		h = fields[0]
+		port, err := strconv.Atoi(fields[1])
+		if err != nil {
+			fmt.Printf("Port is not a number: %s", fields[1])
+			os.Exit(1)
+		}
+		p = port
+	}
 
 	f := flamego.Classic()
 	github := hook.NewGitHub()
@@ -63,7 +86,7 @@ func main() {
 
 	fmt.Print(greetingBanner)
 
-	f.Run()
+	f.Run(h, p)
 
 	fmt.Print(byeBanner)
 
