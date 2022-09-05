@@ -55,7 +55,7 @@ func main() {
 
 	h := "localhost"
 	p := 5678
-	if len(host) != 0 {
+	if host != "" {
 		fields := strings.SplitN(host, ":", 2)
 		h = fields[0]
 		port, err := strconv.Atoi(fields[1])
