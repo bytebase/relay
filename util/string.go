@@ -1,6 +1,6 @@
 package util
 
-// Replace last n letter with x
+// Replace last n letter with x.
 func RedactLastN(s string, n int) string {
 	if n <= 0 {
 		return s

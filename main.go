@@ -43,11 +43,11 @@ ________________________________________________________________________________
 )
 
 var (
-	host string
+	address string
 )
 
 func init() {
-	flag.StringVar(&host, "host", os.Getenv("RELAY_HOST"), "The hostname:port endpoint where Relay runs, default to localhost:5678")
+	flag.StringVar(&address, "address", os.Getenv("RELAY_ADDR"), "The host:port address where Relay runs, default to localhost:5678")
 }
 
 func main() {
@@ -55,8 +55,8 @@ func main() {
 
 	h := "localhost"
 	p := 5678
-	if host != "" {
-		fields := strings.SplitN(host, ":", 2)
+	if address != "" {
+		fields := strings.SplitN(address, ":", 2)
 		h = fields[0]
 		port, err := strconv.Atoi(fields[1])
 		if err != nil {
@@ -65,7 +65,6 @@ func main() {
 		}
 		p = port
 	}
-
 	f := flamego.Classic()
 	github := hook.NewGitHub()
 	lark := sink.NewLark()
