@@ -42,11 +42,11 @@ ________________________________________________________________________________
 )
 
 var (
-	host string
+	address string
 )
 
 func init() {
-	flag.StringVar(&host, "host", os.Getenv("RELAY_HOST"), "The hostname:port endpoint where Relay runs, default to localhost:5678")
+	flag.StringVar(&address, "address", os.Getenv("RELAY_ADDR"), "The host:port address where Relay runs, default to localhost:5678")
 }
 
 func main() {
@@ -55,8 +55,8 @@ func main() {
 	h := "localhost"
 	p := 5678
 	var err error
-	if host != "" {
-		h, p, err = util.ParseHost(host)
+	if address != "" {
+		h, p, err = util.ParseHost(address)
 		if err != nil {
 			fmt.Printf("%s\n", err.Error())
 			os.Exit(1)
