@@ -11,11 +11,11 @@ import (
 )
 
 // Response defines the handler's return value
-// - Sets http.StatusOK and payload if you want the coresponding sink list to process the payload.
-// - Sets other 2xx code if you want to short-circuit the processing, but you don't want to indicate
-//   an error (e.g. skip the processing). You can optionally set a detail to explain the reason.
-//   This will show up on the webhook sender's page.
-// - Sets other HTTP code and error detail if you do want to indicate an error.
+//   - Sets http.StatusOK and payload if you want the coresponding sink list to process the payload.
+//   - Sets other 2xx code if you want to short-circuit the processing, but you don't want to indicate
+//     an error (e.g. skip the processing). You can optionally set a detail to explain the reason.
+//     This will show up on the webhook sender's page.
+//   - Sets other HTTP code and error detail if you do want to indicate an error.
 type Response struct {
 	httpCode int
 	detail   string
