@@ -10,15 +10,22 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
+// Response defines the handler's return value
+//   - Sets http.StatusOK and payload if you want the coresponding sink list to process the payload.
+//   - Sets other 2xx code if you want to short-circuit the processing, but you don't want to indicate
+//     an error (e.g. skip the processing). You can optionally set a detail to explain the reason.
+//     This will show up on the webhook sender's page.
+//   - Sets other HTTP code and error detail if you do want to indicate an error.
+type Response struct {
+	httpCode int
+	detail   string
+	payload  interface{}
+}
+
 // Hooker is the interface for the webhook originator.
 type Hooker interface {
-	// handler returns the hook handler, returns error if precondition
-	// fails such as invalid flag values.
-	// For the returned hook handler:
-	// - Returns http.StatusOK and payload if you want the coresponding sink list to process the payload.
-	// - Returns other 2xx code if you want to short-circuit the processing, but still indicate success.
-	// - Returns other HTTP code if you want to indicate error.
-	handler() (func(r *http.Request) (int, interface{}), error)
+	// handler returns the hook handler, returns error if precondition fails such as invalid flag values.
+	handler() (func(r *http.Request) Response, error)
 }
 
 var (
@@ -56,12 +63,12 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 	}
 
 	f.Post(path, func(r *http.Request) (int, string) {
-		code, payload := handler(r)
+		resp := handler(r)
 
-		if code == http.StatusOK {
+		if resp.httpCode == http.StatusOK {
 			var result error
 			for _, s := range ss {
-				if err := s.Process(r.Context(), path, payload); err != nil {
+				if err := s.Process(r.Context(), path, resp.payload); err != nil {
 					result = multierror.Append(result, err)
 				}
 			}
@@ -70,9 +77,7 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 			}
 			return http.StatusOK, "OK"
 		}
-
-		// TODO(tianzhou): remove type assert
-		return code, payload.(string)
+		return resp.httpCode, resp.detail
 	})
 
 	hookers[path] = h
