@@ -56,7 +56,7 @@ func main() {
 	p := 5678
 	var err error
 	if address != "" {
-		h, p, err = util.ParseHost(address)
+		h, p, err = util.ParseAddr(address)
 		if err != nil {
 			fmt.Printf("%s\n", err.Error())
 			os.Exit(1)

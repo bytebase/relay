@@ -55,7 +55,7 @@ func TestStringReact(t *testing.T) {
 	}
 }
 
-func TestParseHostt(t *testing.T) {
+func TestParseAddr(t *testing.T) {
 	type test struct {
 		host     string
 		wantHost string
@@ -110,7 +110,7 @@ func TestParseHostt(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.host, func(t *testing.T) {
-			h, p, err := ParseHost(tc.host)
+			h, p, err := ParseAddr(tc.host)
 			if err != nil {
 				if tc.wantErr == "" {
 					t.Errorf("Expect no error, got error %q", err)
