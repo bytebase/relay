@@ -16,7 +16,7 @@ $ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://
 # --lark-url can also be a comma separated list
 $ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo,https://open.feishu.cn/open-apis/bot/v2/hook/bar"
 
-# Pass LARK_URL via environment variable
+# Pass LARK_URLS via environment variable
 $ export LARK_URLS=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx
 $ go run main.go --github-ref-prefix="refs/heads/release/"
 
