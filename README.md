@@ -8,7 +8,7 @@
   </a>
 </p>
 
-Relay is a web server for forwarding event from service A to service B. While forwarding the event, it allows to inject arbitrary logic to process the event such as filtering, augmenting.
+Relay is a web server for forwarding events from service A to service B. While forwarding the event, it allows injecting arbitrary logic for processing the event such as filtering and augmenting.
 
 You may think Relay as a very very simplified version of self hosted [Zapier](https://zapier.com).
 
@@ -16,7 +16,7 @@ You may think Relay as a very very simplified version of self hosted [Zapier](ht
 
 <img alt="Overview" src="assets/overview.png" /></a>
 
-Relay Contains 2 components Hooker and Sinker.
+Relay Contains 2 components, Hooker and Sinker.
 
 Hooker - Receive the webhook event from upstream services such as GitHub, GitLab, do some processing, and pass the processed payload to Sinker.
 
@@ -29,7 +29,7 @@ To relay an event from Service A to Service B, you would
 
 # Common Flags
 
-#### --address (Env RELAY_ADDR)
+#### `--address` (Env `RELAY_ADDR`)
 
 The address where Relay runs. Default `localhost:5678`.
 
@@ -41,7 +41,7 @@ The address where Relay runs. Default `localhost:5678`.
 
 ### Flags
 
-#### --github-ref-prefix
+#### `--github-ref-prefix`
 
 The prefix for the GitHub ref. GitHub Webhook iteself doesn't allow to specify a particular branch or branch filter. You can use `--github-ref-prefix` to only observe the events from the interested branch(es).
 
@@ -51,9 +51,9 @@ The prefix for the GitHub ref. GitHub Webhook iteself doesn't allow to specify a
 
 ### Flags
 
-#### --lark-urls
+#### `--lark-urls`
 
-A comma separated list of Lark message group webhook URLs
+A comma-separated list of Lark message group webhook URLs.
 
 # Quickstart
 
