@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/bytebase/relay/payload"
@@ -25,7 +24,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&webhookURLs, "lark-urls", os.Getenv("LARK_URLS"), "A comma separated list of Lark webhook URLs")
+	flag.StringVar(&webhookURLs, "lark-urls", "", "A comma separated list of Lark webhook URLs")
 }
 
 // NewLark creates a Lark sinker
@@ -38,7 +37,7 @@ type larkSinker struct {
 
 func (sink *larkSinker) Mount() error {
 	if webhookURLs == "" {
-		return fmt.Errorf(`the "--lark-urls" or "LARK_URLS" is required`)
+		return fmt.Errorf(`the "--lark-urls" is required`)
 	}
 	return nil
 }
