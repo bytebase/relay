@@ -9,10 +9,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bytebase/relay/payload"
-	"github.com/bytebase/relay/util"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
+
+	"github.com/bytebase/relay/payload"
+	"github.com/bytebase/relay/util"
 )
 
 var (
@@ -35,7 +36,7 @@ func NewLark() Sinker {
 type larkSinker struct {
 }
 
-func (sink *larkSinker) Mount() error {
+func (sinker *larkSinker) Mount() error {
 	if webhookURLs == "" {
 		return fmt.Errorf(`the "--lark-urls" is required`)
 	}
@@ -46,10 +47,21 @@ func (sinker *larkSinker) Process(c context.Context, path string, pi interface{}
 	switch path {
 	case "/github":
 		p := pi.(payload.GitHubPushEvent)
+		var text string
+		if p.Deleted {
+			text = fmt.Sprintf("%q has been deleted by %s", p.Ref, p.Sender.Login)
+		} else {
+			text = fmt.Sprintf(`New commits have been pushed to %q by %s(%s) at %s
+Title: %s
+Diff: %s`,
+				p.Ref, p.HeadCommit.Author.Name, p.HeadCommit.Author.Email, p.HeadCommit.Timestamp,
+				p.HeadCommit.Message,
+				p.Compare,
+			)
+		}
 		urlList := strings.Split(webhookURLs, ",")
 		for _, url := range urlList {
-			err := sendToLark(c, url, fmt.Sprintf("New commits have been pushed to %q by %s(%s) at %s\nTitle: %s\nDiff: %s",
-				p.Ref, p.HeadCommit.Author.Name, p.HeadCommit.Author.Email, p.HeadCommit.Timestamp, p.HeadCommit.Message, p.Compare))
+			err := sendToLark(c, url, text)
 			if err != nil {
 				return fmt.Errorf("failed to send to Lark %q: %w", util.RedactLastN(url, 12), err)
 			}

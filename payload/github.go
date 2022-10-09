@@ -13,6 +13,10 @@ type GitHubCommit struct {
 
 type GitHubPushEvent struct {
 	Ref        string       `json:"ref"`
+	Deleted    bool         `json:"deleted"`
 	Compare    string       `json:"compare"`
 	HeadCommit GitHubCommit `json:"head_commit"`
+	Sender     struct {
+		Login string `json:"login"`
+	} `json:"sender"`
 }
