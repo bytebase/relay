@@ -22,6 +22,7 @@ func NewGerrit() Hooker {
 }
 
 func init() {
+	// For demo we only supports monitor one branch in one project.
 	flag.StringVar(&gerritProject, "gerrit-project", "", "The Gerrit repository name")
 	flag.StringVar(&gerritProjectBranch, "gerrit-branch", "main", "The branch name in Gerrit repository")
 }
