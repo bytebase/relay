@@ -74,7 +74,6 @@ func (sinker *bytebaseSinker) Mount() error {
 		return fmt.Errorf(`the "--bytebase-url, --bytebase-service-account and --bytebase-service-key" is required`)
 	}
 
-	// sinker.gerritService = service.NewGerrit("https://gerrit.bytebase.com", "ed", "lhAqig2nnTL6gCNXIjDCRnCoi0y9nma48UfjcbsLzA")
 	sinker.gerritService = service.NewGerrit(gerritUR, gerritAccount, gerritPassword)
 	sinker.bytebaseService = service.NewBytebase(bytebaseURL, bytebaseServiceAccount, bytebaseServiceKey)
 	return nil
