@@ -9,10 +9,7 @@ const (
 type GerritChange struct {
 	Project string `json:"project"`
 	Branch  string `json:"branch"`
-}
-
-type GerritChangeKey struct {
-	Key string `json:"key"`
+	ID      string `json:"id"`
 }
 
 type GerritPatchSet struct {
@@ -20,8 +17,7 @@ type GerritPatchSet struct {
 }
 
 type GerritEvent struct {
-	Change    *GerritChange    `json:"change"`
-	ChangeKey *GerritChangeKey `json:"changeKey"`
-	Type      GerritEventType  `json:"type"`
-	PatchSet  *GerritPatchSet  `json:"patchSet"`
+	Change   *GerritChange   `json:"change"`
+	Type     GerritEventType `json:"type"`
+	PatchSet *GerritPatchSet `json:"patchSet"`
 }

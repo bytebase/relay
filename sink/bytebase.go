@@ -96,7 +96,7 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 		return nil
 	}
 
-	fileMap, err := sinker.gerritService.ListFilesInChange(c, p.ChangeKey.Key, p.PatchSet.Revision)
+	fileMap, err := sinker.gerritService.ListFilesInChange(c, p.Change.ID, p.PatchSet.Revision)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 			return err
 		}
 
-		content, err := sinker.gerritService.GetFileContent(c, p.ChangeKey.Key, p.PatchSet.Revision, fileName)
+		content, err := sinker.gerritService.GetFileContent(c, p.Change.ID, p.PatchSet.Revision, fileName)
 		if err != nil {
 			return err
 		}
