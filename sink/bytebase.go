@@ -3,6 +3,7 @@ package sink
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -67,6 +68,7 @@ type migrationInfo struct {
 	Environment string
 	Description string
 	Project     string
+	Name        string
 }
 
 func (sinker *bytebaseSinker) Mount() error {
@@ -93,6 +95,7 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 	p := pi.(payload.GerritEvent)
 
 	if p.Change.Branch != sinker.branch || p.Change.Project != sinker.project {
+		log.Printf("ignore event as the branch or project doesn't match, expect %s:%s but got %s:%s", sinker.project, sinker.branch, p.Change.Project, p.Change.Branch)
 		return nil
 	}
 
@@ -102,7 +105,7 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 	}
 
 	for fileName := range fileMap {
-		fmt.Printf("processing file %s\n", fileName)
+		log.Printf("processing file %s\n", fileName)
 
 		if strings.HasPrefix(fileName, "/") {
 			continue
@@ -121,8 +124,8 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 			return err
 		}
 
-		issueName := fmt.Sprintf(issueNameTemplate, mi.Database, mi.Type)
-		fmt.Printf("start create issue %s\n", issueName)
+		issueName := fmt.Sprintf(issueNameTemplate, mi.Name, fileName)
+		log.Printf("start create issue %s\n", issueName)
 		issueCreate := &payload.IssueCreate{
 			ProjectKey:    mi.Project,
 			Database:      mi.Database,
@@ -179,14 +182,14 @@ func parseMigrationInfo(filePath, filePathTemplate string) (*migrationInfo, erro
 				mi.Database = matchList[index]
 			case "TYPE":
 				switch matchList[index] {
-				case "data":
+				case "data", "dml":
 					mi.Type = payload.Data
-				case "dml":
 					mi.Type = payload.Data
-				case "migrate":
+					mi.Name = "Change data"
+				case "migrate", "ddl":
 					mi.Type = payload.Migrate
-				case "ddl":
 					mi.Type = payload.Migrate
+					mi.Name = "Alter schema"
 				default:
 					return nil, fmt.Errorf("file path %q contains invalid migration type %q, must be 'migrate'('ddl') or 'data'('dml')", filePath, matchList[index])
 				}

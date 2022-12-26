@@ -3,6 +3,7 @@ package hook
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/bytebase/relay/payload"
@@ -31,7 +32,7 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 			}
 		}
 
-		fmt.Printf("gerrit event received: %s\n", message.Type)
+		log.Printf("gerrit event received: %s\n", message.Type)
 
 		if message.Type != payload.GerritEventChangeMerged {
 			return Response{
