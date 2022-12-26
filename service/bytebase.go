@@ -43,7 +43,7 @@ func (s *BytebaseService) CreateIssue(ctx context.Context, create *payload.Issue
 		return err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/issue", s.url), strings.NewReader(string(payload)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/issues", s.url), strings.NewReader(string(payload)))
 	if err != nil {
 		return err
 	}
