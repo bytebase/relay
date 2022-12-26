@@ -16,6 +16,7 @@ type GerritPatchSet struct {
 	Revision string `json:"revision"`
 }
 
+// GerritEvent is the API message for Gerrit webhook.
 type GerritEvent struct {
 	Change   *GerritChange   `json:"change"`
 	Type     GerritEventType `json:"type"`

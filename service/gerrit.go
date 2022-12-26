@@ -19,7 +19,6 @@ type GerritService struct {
 	password string
 }
 
-// https://gerrit-review.googlesource.com/Documentation/rest-api.html
 const gerritResponsePrefix = ")]}'\n"
 
 // NewGerrit creates a Gerrit service
@@ -31,7 +30,8 @@ func NewGerrit(url, username, password string) *GerritService {
 	}
 }
 
-// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-files
+// ListFilesInChange lists changed files in a change.
+// Docs: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-files
 func (s *GerritService) ListFilesInChange(ctx context.Context, changeKey, revisionKey string) (map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/a/changes/%s/revisions/%s/files", s.url, changeKey, revisionKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -57,7 +57,8 @@ func (s *GerritService) ListFilesInChange(ctx context.Context, changeKey, revisi
 	return data, nil
 }
 
-// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-content
+// GetFileContent returns the file content in a change.
+// Docs: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-content
 func (s *GerritService) GetFileContent(ctx context.Context, changeKey, revisionKey, filename string) (string, error) {
 	url := fmt.Sprintf("%s/a/changes/%s/revisions/%s/files/%s/content", s.url, changeKey, revisionKey, url.QueryEscape(filename))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -104,6 +105,8 @@ func (s *GerritService) basicAuth() string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
+// All responses from Gerrit have a specific prefix
+// Docs: https://gerrit-review.googlesource.com/Documentation/rest-api.html
 func parseGerritResponse(input []byte) ([]byte, error) {
 	str := string(input)
 	if !strings.HasPrefix(str, gerritResponsePrefix) {

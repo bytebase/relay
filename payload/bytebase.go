@@ -13,6 +13,7 @@ const (
 	Data MigrationType = "DATA"
 )
 
+// IssueCreate is the API message for creating a issue.
 type IssueCreate struct {
 	// Related fields
 	ProjectKey  string `json:"projectKey"`

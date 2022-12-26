@@ -24,10 +24,7 @@ type bytebaseAuthRequest struct {
 }
 
 type bytebaseAuthResponse struct {
-	UserID   int    `json:"userId"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Token    string `json:"token"`
+	Token string `json:"token"`
 }
 
 // NewLark creates a Bytebase service
@@ -39,6 +36,7 @@ func NewBytebase(url, key, secret string) *BytebaseService {
 	}
 }
 
+// CreateIssue creates a single issue in a project.
 func (s *BytebaseService) CreateIssue(ctx context.Context, create *payload.IssueCreate) error {
 	payload, err := json.Marshal(create)
 	if err != nil {
