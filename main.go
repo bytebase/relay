@@ -70,6 +70,10 @@ func main() {
 	lark := sink.NewLark()
 	hook.Mount(f, "/github", github, []sink.Sinker{lark})
 
+	gerrit := hook.NewGerrit()
+	bytebase := sink.NewBytebase()
+	hook.Mount(f, "/gerrit", gerrit, []sink.Sinker{bytebase})
+
 	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)

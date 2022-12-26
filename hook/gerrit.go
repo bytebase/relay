@@ -31,6 +31,8 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 			}
 		}
 
+		fmt.Printf("gerrit event received: %s\n", message.Type)
+
 		if message.Type != payload.GerritEventChangeMerged {
 			return Response{
 				httpCode: http.StatusAccepted,

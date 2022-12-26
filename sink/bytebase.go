@@ -24,6 +24,7 @@ var (
 	bytebaseURL            string
 	bytebaseServiceAccount string
 	bytebaseServiceKey     string
+	issueNameTemplate      string = "[%s] %s"
 	filePathTemplate       string = "{{PROJECT_KEY}}/{{ENV_NAME}}/{{DB_NAME}}##{{VERSION}}##{{TYPE}}##{{DESCRIPTION}}.sql"
 	placeholderRegexp      string = `[^\\/?%*:|"<>]+`
 	placeholderList               = []string{
@@ -101,6 +102,8 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 	}
 
 	for fileName := range fileMap {
+		fmt.Printf("processing file %s\n", fileName)
+
 		if strings.HasPrefix(fileName, "/") {
 			continue
 		}
@@ -118,12 +121,13 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 			return err
 		}
 
+		issueName := fmt.Sprintf(issueNameTemplate, mi.Database, mi.Type)
+		fmt.Printf("start create issue %s\n", issueName)
 		issueCreate := &payload.IssueCreate{
-			ProjectKey:  mi.Project,
-			Database:    mi.Database,
-			Environment: mi.Environment,
-
-			Name:          "Alter schema",
+			ProjectKey:    mi.Project,
+			Database:      mi.Database,
+			Environment:   mi.Environment,
+			Name:          issueName,
 			Description:   mi.Description,
 			MigrationType: mi.Type,
 			Statement:     content,
