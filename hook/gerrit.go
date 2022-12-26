@@ -7,15 +7,23 @@ import (
 	"net/http"
 
 	"github.com/bytebase/relay/payload"
+	flag "github.com/spf13/pflag"
 )
 
 var (
-	_ Hooker = (*gerritHooker)(nil)
+	_                   Hooker = (*gerritHooker)(nil)
+	gerritProject       string
+	gerritProjectBranch string
 )
 
 // NewGerrit creates a Gerrit hooker
 func NewGerrit() Hooker {
 	return &gerritHooker{}
+}
+
+func init() {
+	flag.StringVar(&gerritProject, "gerrit-project", "", "The Gerrit repository name")
+	flag.StringVar(&gerritProjectBranch, "gerrit-branch", "main", "The branch name in Gerrit repository")
 }
 
 type gerritHooker struct {
@@ -38,6 +46,14 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 			return Response{
 				httpCode: http.StatusAccepted,
 				detail:   fmt.Sprintf("Skip %s event", message.Type),
+			}
+		}
+
+		if message.Change.Project != gerritProject || message.Change.Branch != gerritProjectBranch {
+			log.Printf("ignore event as the branch or project doesn't match, expect %s:%s but got %s:%s", gerritProject, gerritProjectBranch, message.Change.Project, message.Change.Branch)
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   fmt.Sprintf("Skip the message for %s branch in %s project", message.Change.Branch, message.Change.Project),
 			}
 		}
 

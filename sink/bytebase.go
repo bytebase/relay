@@ -20,15 +20,14 @@ var (
 	gerritUR               string
 	gerritAccount          string
 	gerritPassword         string
-	gerritRepository       string
-	gerritRepositoryBranch string
 	bytebaseURL            string
 	bytebaseServiceAccount string
 	bytebaseServiceKey     string
-	issueNameTemplate      string = "[%s] %s"
-	filePathTemplate       string = "{{PROJECT_KEY}}/{{ENV_NAME}}/{{DB_NAME}}##{{VERSION}}##{{TYPE}}##{{DESCRIPTION}}.sql"
-	placeholderRegexp      string = `[^\\/?%*:|"<>]+`
-	placeholderList               = []string{
+	// hard code for demo
+	issueNameTemplate string = "[%s] %s"
+	filePathTemplate  string = "{{PROJECT_KEY}}/{{ENV_NAME}}/{{DB_NAME}}##{{VERSION}}##{{TYPE}}##{{DESCRIPTION}}.sql"
+	placeholderRegexp string = `[^\\/?%*:|"<>]+`
+	placeholderList          = []string{
 		"PROJECT_KEY",
 		"ENV_NAME",
 		"VERSION",
@@ -42,8 +41,6 @@ func init() {
 	flag.StringVar(&gerritUR, "gerrit-url", "https://gerrit.bytebase.com", "The Gerrit service URL")
 	flag.StringVar(&gerritAccount, "gerrit-account", "", "The Gerrit service account name")
 	flag.StringVar(&gerritPassword, "gerrit-password", "", "The Gerrit service account password")
-	flag.StringVar(&gerritRepository, "gerrit-repository", "", "The Gerrit repository name")
-	flag.StringVar(&gerritRepositoryBranch, "gerrit-branch", "main", "The branch name in Gerrit repository")
 	flag.StringVar(&bytebaseURL, "bytebase-url", "http://localhost:8080", "The Bytebase service URL")
 	flag.StringVar(&bytebaseServiceAccount, "bytebase-service-account", "", "The Bytebase service account name")
 	flag.StringVar(&bytebaseServiceKey, "bytebase-service-key", "", "The Bytebase service account key")
@@ -55,8 +52,6 @@ func NewBytebase() Sinker {
 }
 
 type bytebaseSinker struct {
-	project         string
-	branch          string
 	gerritService   *service.GerritService
 	bytebaseService *service.BytebaseService
 }
@@ -75,16 +70,10 @@ func (sinker *bytebaseSinker) Mount() error {
 	if gerritUR == "" || gerritAccount == "" || gerritPassword == "" {
 		return fmt.Errorf(`the "--gerrit-url, --gerrit-account and --gerrit-password" is required`)
 	}
-	if gerritRepository == "" || gerritRepositoryBranch == "" {
-		return fmt.Errorf(`the "--gerrit-repository and --gerrit-branch" is required`)
-	}
 	if bytebaseURL == "" || bytebaseServiceAccount == "" || bytebaseServiceKey == "" {
 		return fmt.Errorf(`the "--bytebase-url, --bytebase-service-account and --bytebase-service-key" is required`)
 	}
 
-	// hardcode for demo
-	sinker.project = gerritRepository
-	sinker.branch = gerritRepositoryBranch
 	// sinker.gerritService = service.NewGerrit("https://gerrit.bytebase.com", "ed", "lhAqig2nnTL6gCNXIjDCRnCoi0y9nma48UfjcbsLzA")
 	sinker.gerritService = service.NewGerrit(gerritUR, gerritAccount, gerritPassword)
 	sinker.bytebaseService = service.NewBytebase(bytebaseURL, bytebaseServiceAccount, bytebaseServiceKey)
@@ -93,11 +82,6 @@ func (sinker *bytebaseSinker) Mount() error {
 
 func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{}) error {
 	p := pi.(payload.GerritEvent)
-
-	if p.Change.Branch != sinker.branch || p.Change.Project != sinker.project {
-		log.Printf("ignore event as the branch or project doesn't match, expect %s:%s but got %s:%s", sinker.project, sinker.branch, p.Change.Project, p.Change.Branch)
-		return nil
-	}
 
 	fileMap, err := sinker.gerritService.ListFilesInChange(c, p.Change.ID, p.PatchSet.Revision)
 	if err != nil {
