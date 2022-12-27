@@ -55,7 +55,7 @@ Currently we only support monitor one branch in one repository.
 
 Target repository. Will ignore the webhook message if the repository mismatched.
 
-#### `gerrit-branch`
+#### `--gerrit-branch`
 
 Target branch in the repository. Will ignore the webhook message if the branch mismatched.
 
@@ -72,6 +72,27 @@ A comma-separated list of Lark message group webhook URLs.
 ## Bytebase
 
 The Bytebase sinker will receive messages from the Gerrit hook, then create the issue for the SQL change.
+The Bytebase sinker also depends on the Gerrit service. Check the docs below for the [Gerrit service](#gerrit-service).
+
+#### `--bytebase-url`
+
+The Bytebase service URL. You can use the external URL in production.
+Check the docs about external URL: https://www.bytebase.com/docs/get-started/install/external-url
+
+#### `--bytebase-service-account`
+
+The Bytebase service account. Used to call the Bytebase OpenAPI.
+
+#### `--bytebase-service-key`
+
+The Bytebase service key. Used to call the Bytebase OpenAPI.
+
+# Service
+
+<a id="gerrit-service"></a>
+## Gerrit
+
+The Gerrit API service.
 
 ### Flags
 
@@ -86,19 +107,6 @@ The Gerrit account name.
 #### `--gerrit-password`
 
 The Gerrit account password.
-
-#### `--bytebase-url`
-
-The Bytebase service URL. You can use the external URL in production.
-Check the docs about external URL: https://www.bytebase.com/docs/get-started/install/external-url
-
-#### `--bytebase-service-account`
-
-The Bytebase service account. Used to call the Bytebase OpenAPI.
-
-#### `--bytebase-service-key`
-
-The Bytebase service key. Used to call the Bytebase OpenAPI.
 
 # Quickstart
 
