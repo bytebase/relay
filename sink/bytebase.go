@@ -3,7 +3,6 @@ package sink
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -17,7 +16,7 @@ var (
 )
 
 var (
-	gerritUR               string
+	gerritURL              string
 	gerritAccount          string
 	gerritPassword         string
 	bytebaseURL            string
@@ -38,7 +37,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&gerritUR, "gerrit-url", "https://gerrit.bytebase.com", "The Gerrit service URL")
+	flag.StringVar(&gerritURL, "gerrit-url", "https://gerrit.bytebase.com", "The Gerrit service URL")
 	flag.StringVar(&gerritAccount, "gerrit-account", "", "The Gerrit service account name")
 	flag.StringVar(&gerritPassword, "gerrit-password", "", "The Gerrit service account password")
 	flag.StringVar(&bytebaseURL, "bytebase-url", "http://localhost:8080", "The Bytebase service URL")
@@ -67,14 +66,14 @@ type migrationInfo struct {
 }
 
 func (sinker *bytebaseSinker) Mount() error {
-	if gerritUR == "" || gerritAccount == "" || gerritPassword == "" {
+	if gerritURL == "" || gerritAccount == "" || gerritPassword == "" {
 		return fmt.Errorf(`the "--gerrit-url, --gerrit-account and --gerrit-password" is required`)
 	}
 	if bytebaseURL == "" || bytebaseServiceAccount == "" || bytebaseServiceKey == "" {
 		return fmt.Errorf(`the "--bytebase-url, --bytebase-service-account and --bytebase-service-key" is required`)
 	}
 
-	sinker.gerritService = service.NewGerrit(gerritUR, gerritAccount, gerritPassword)
+	sinker.gerritService = service.NewGerrit(gerritURL, gerritAccount, gerritPassword)
 	sinker.bytebaseService = service.NewBytebase(bytebaseURL, bytebaseServiceAccount, bytebaseServiceKey)
 	return nil
 }
@@ -88,8 +87,6 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 	}
 
 	for fileName := range fileMap {
-		log.Printf("processing file %s\n", fileName)
-
 		if strings.HasPrefix(fileName, "/") {
 			continue
 		}
@@ -108,7 +105,6 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 		}
 
 		issueName := fmt.Sprintf(issueNameTemplate, mi.Name, fileName)
-		log.Printf("start create issue %s\n", issueName)
 		issueCreate := &payload.IssueCreate{
 			ProjectKey:    mi.Project,
 			Database:      mi.Database,
