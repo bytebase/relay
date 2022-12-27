@@ -55,7 +55,7 @@ Currently we only support monitor one branch in one repository.
 
 Target repository. Will ignore the webhook message if the repository mismatched.
 
-#### `gerrit-branch`
+#### `--gerrit-branch`
 
 Target branch in the repository. Will ignore the webhook message if the branch mismatched.
 
