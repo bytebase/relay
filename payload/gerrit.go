@@ -22,3 +22,8 @@ type GerritEvent struct {
 	Type     GerritEventType `json:"type"`
 	PatchSet *GerritPatchSet `json:"patchSet"`
 }
+
+type GerritChangedFile struct {
+	FileName string
+	Content  string
+}

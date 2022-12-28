@@ -16,9 +16,6 @@ var (
 )
 
 var (
-	gerritURL              string
-	gerritAccount          string
-	gerritPassword         string
 	bytebaseURL            string
 	bytebaseServiceAccount string
 	bytebaseServiceKey     string
@@ -37,9 +34,6 @@ var (
 )
 
 func init() {
-	flag.StringVar(&gerritURL, "gerrit-url", "https://gerrit.bytebase.com", "The Gerrit service URL")
-	flag.StringVar(&gerritAccount, "gerrit-account", "", "The Gerrit service account name")
-	flag.StringVar(&gerritPassword, "gerrit-password", "", "The Gerrit service account password")
 	flag.StringVar(&bytebaseURL, "bytebase-url", "http://localhost:8080", "The Bytebase service URL")
 	flag.StringVar(&bytebaseServiceAccount, "bytebase-service-account", "", "The Bytebase service account name")
 	flag.StringVar(&bytebaseServiceKey, "bytebase-service-key", "", "The Bytebase service account key")
@@ -51,7 +45,6 @@ func NewBytebase() Sinker {
 }
 
 type bytebaseSinker struct {
-	gerritService   *service.GerritService
 	bytebaseService *service.BytebaseService
 }
 
@@ -66,45 +59,24 @@ type migrationInfo struct {
 }
 
 func (sinker *bytebaseSinker) Mount() error {
-	if gerritURL == "" || gerritAccount == "" || gerritPassword == "" {
-		return fmt.Errorf(`the "--gerrit-url, --gerrit-account and --gerrit-password" is required`)
-	}
 	if bytebaseURL == "" || bytebaseServiceAccount == "" || bytebaseServiceKey == "" {
 		return fmt.Errorf(`the "--bytebase-url, --bytebase-service-account and --bytebase-service-key" is required`)
 	}
 
-	sinker.gerritService = service.NewGerrit(gerritURL, gerritAccount, gerritPassword)
 	sinker.bytebaseService = service.NewBytebase(bytebaseURL, bytebaseServiceAccount, bytebaseServiceKey)
 	return nil
 }
 
 func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{}) error {
-	p := pi.(payload.GerritEvent)
+	files := pi.([]*payload.GerritChangedFile)
 
-	fileMap, err := sinker.gerritService.ListFilesInChange(c, p.Change.ID, p.PatchSet.Revision)
-	if err != nil {
-		return err
-	}
-
-	for fileName := range fileMap {
-		if strings.HasPrefix(fileName, "/") {
-			continue
-		}
-		if !strings.HasSuffix(fileName, ".sql") {
-			continue
-		}
-
-		mi, err := parseMigrationInfo(fileName, filePathTemplate)
+	for _, file := range files {
+		mi, err := parseMigrationInfo(file.FileName, filePathTemplate)
 		if err != nil {
 			return err
 		}
 
-		content, err := sinker.gerritService.GetFileContent(c, p.Change.ID, p.PatchSet.Revision, fileName)
-		if err != nil {
-			return err
-		}
-
-		issueName := fmt.Sprintf(issueNameTemplate, mi.Name, fileName)
+		issueName := fmt.Sprintf(issueNameTemplate, mi.Name, file.FileName)
 		issueCreate := &payload.IssueCreate{
 			ProjectKey:    mi.Project,
 			Database:      mi.Database,
@@ -112,7 +84,7 @@ func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{
 			Name:          issueName,
 			Description:   mi.Description,
 			MigrationType: mi.Type,
-			Statement:     content,
+			Statement:     file.Content,
 			SchemaVersion: mi.Version,
 		}
 		if err := sinker.bytebaseService.CreateIssue(c, issueCreate); err != nil {

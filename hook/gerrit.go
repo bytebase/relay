@@ -1,11 +1,14 @@
 package hook
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/bytebase/relay/payload"
+	"github.com/bytebase/relay/service"
 	flag "github.com/spf13/pflag"
 )
 
@@ -13,23 +16,37 @@ var (
 	_                   Hooker = (*gerritHooker)(nil)
 	gerritProject       string
 	gerritProjectBranch string
+	gerritURL           string
+	gerritAccount       string
+	gerritPassword      string
 )
 
 // NewGerrit creates a Gerrit hooker
 func NewGerrit() Hooker {
-	return &gerritHooker{}
+	return &gerritHooker{
+		gerritService: service.NewGerrit(gerritURL, gerritAccount, gerritPassword),
+	}
 }
 
 func init() {
 	// For demo we only supports monitor one branch in one project.
 	flag.StringVar(&gerritProject, "gerrit-repository", "", "The Gerrit repository name")
 	flag.StringVar(&gerritProjectBranch, "gerrit-branch", "main", "The branch name in Gerrit repository")
+
+	flag.StringVar(&gerritURL, "gerrit-url", "https://gerrit.bytebase.com", "The Gerrit service URL")
+	flag.StringVar(&gerritAccount, "gerrit-account", "", "The Gerrit service account name")
+	flag.StringVar(&gerritPassword, "gerrit-password", "", "The Gerrit service account password")
 }
 
 type gerritHooker struct {
+	gerritService *service.GerritService
 }
 
 func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
+	if gerritURL == "" || gerritAccount == "" || gerritPassword == "" {
+		return nil, fmt.Errorf(`the "--gerrit-url, --gerrit-account and --gerrit-password" is required`)
+	}
+
 	return func(r *http.Request) Response {
 		var message payload.GerritEvent
 		err := json.NewDecoder(r.Body).Decode(&message)
@@ -54,9 +71,40 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 			}
 		}
 
+		ctx := context.Background()
+		fileMap, err := hooker.gerritService.ListFilesInChange(ctx, message.Change.ID, message.PatchSet.Revision)
+		if err != nil {
+			return Response{
+				httpCode: http.StatusInternalServerError,
+				payload:  err.Error(),
+			}
+		}
+
+		changedFileList := []*payload.GerritChangedFile{}
+		for fileName := range fileMap {
+			if strings.HasPrefix(fileName, "/") {
+				continue
+			}
+			if !strings.HasSuffix(fileName, ".sql") {
+				continue
+			}
+			content, err := hooker.gerritService.GetFileContent(ctx, message.Change.ID, message.PatchSet.Revision, fileName)
+			if err != nil {
+				return Response{
+					httpCode: http.StatusInternalServerError,
+					payload:  err.Error(),
+				}
+			}
+
+			changedFileList = append(changedFileList, &payload.GerritChangedFile{
+				FileName: fileName,
+				Content:  content,
+			})
+		}
+
 		return Response{
 			httpCode: http.StatusOK,
-			payload:  message,
+			payload:  changedFileList,
 		}
 	}, nil
 }

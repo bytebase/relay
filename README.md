@@ -59,6 +59,18 @@ Target repository. Will ignore the webhook message if the repository mismatched.
 
 Target branch in the repository. Will ignore the webhook message if the branch mismatched.
 
+#### `--gerrit-url`
+
+The Gerrit service URL. We need to call the Gerrit service to list files in the change, and get the file content in the change.
+
+#### `--gerrit-account`
+
+The Gerrit account name.
+
+#### `--gerrit-password`
+
+The Gerrit account password.
+
 # Supported Sinkers
 
 ## Lark
@@ -72,7 +84,6 @@ A comma-separated list of Lark message group webhook URLs.
 ## Bytebase
 
 The Bytebase sinker will receive messages from the Gerrit hook, then create the issue for the SQL change.
-The Bytebase sinker also depends on the Gerrit service. Check the docs below for the [Gerrit service](#gerrit-service).
 
 #### `--bytebase-url`
 
@@ -86,27 +97,6 @@ The Bytebase service account. Used to call the Bytebase OpenAPI.
 #### `--bytebase-service-key`
 
 The Bytebase service key. Used to call the Bytebase OpenAPI.
-
-# Service
-
-<a id="gerrit-service"></a>
-## Gerrit
-
-The Gerrit API service.
-
-### Flags
-
-#### `--gerrit-url`
-
-The Gerrit service URL. We need to call the Gerrit service to list files in the change, and get the file content in the change.
-
-#### `--gerrit-account`
-
-The Gerrit account name.
-
-#### `--gerrit-password`
-
-The Gerrit account password.
 
 # Quickstart
 
