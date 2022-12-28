@@ -45,6 +45,32 @@ The address where Relay runs. Default `localhost:5678`.
 
 The prefix for the GitHub ref. GitHub Webhook iteself doesn't allow to specify a particular branch or branch filter. You can use `--github-ref-prefix` to only observe the events from the interested branch(es).
 
+## Gerrit
+
+### Flags
+
+Currently we only support monitor one branch in one repository.
+
+#### `--gerrit-repository`
+
+Target repository. Will ignore the webhook message if the repository mismatched.
+
+#### `--gerrit-branch`
+
+Target branch in the repository. Will ignore the webhook message if the branch mismatched.
+
+#### `--gerrit-url`
+
+The Gerrit service URL. We need to call the Gerrit service to list files in the change, and get the file content in the change.
+
+#### `--gerrit-account`
+
+The Gerrit account name.
+
+#### `--gerrit-password`
+
+The Gerrit account password.
+
 # Supported Sinkers
 
 ## Lark
@@ -55,14 +81,31 @@ The prefix for the GitHub ref. GitHub Webhook iteself doesn't allow to specify a
 
 A comma-separated list of Lark message group webhook URLs.
 
+## Bytebase
+
+The Bytebase sinker will receive messages from the Gerrit hook, then create the issue for the SQL change.
+
+#### `--bytebase-url`
+
+The Bytebase service URL. You can use the external URL in production.
+Check the docs about external URL: https://www.bytebase.com/docs/get-started/install/external-url
+
+#### `--bytebase-service-account`
+
+The Bytebase service account. Used to call the Bytebase OpenAPI.
+
+#### `--bytebase-service-key`
+
+The Bytebase service key. Used to call the Bytebase OpenAPI.
+
 # Quickstart
 
 ```sh
-$ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo"
+$ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo" --gerrit-account="<gerrit-account>" --gerrit-password="<gerrit-password>" --gerrit-repository="<gerrit-repository>" --gerrit-branch="<gerrit-branch>" --bytebase-url="https://bytebase.example.com" --bytebase-service-account="<bytebase-service-account>" --bytebase-service-key="<bytebase-service-key>"
 
 # --lark-url can also be a comma separated list
-$ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo,https://open.feishu.cn/open-apis/bot/v2/hook/bar"
+$ go run main.go --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo,https://open.feishu.cn/open-apis/bot/v2/hook/bar" --gerrit-account="<gerrit-account>" --gerrit-password="<gerrit-password>" --gerrit-repository="<gerrit-repository>" --gerrit-branch="<gerrit-branch>" --bytebase-url="https://bytebase.example.com" --bytebase-service-account="<bytebase-service-account>" --bytebase-service-key="<bytebase-service-key>"
 
 # Runs on localhost:8080
-$ go run main.go --address=localhost:8080 --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo"
+$ go run main.go --address=localhost:8080 --github-ref-prefix="refs/heads/release/" --lark-urls="https://open.feishu.cn/open-apis/bot/v2/hook/foo" --gerrit-account="<gerrit-account>" --gerrit-password="<gerrit-password>" --gerrit-repository="<gerrit-repository>" --gerrit-branch="<gerrit-branch>" --bytebase-url="https://bytebase.example.com" --bytebase-service-account="<bytebase-service-account>" --bytebase-service-key="<bytebase-service-key>"
 ```
