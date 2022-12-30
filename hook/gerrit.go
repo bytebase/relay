@@ -104,7 +104,9 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 
 		return Response{
 			httpCode: http.StatusOK,
-			payload:  changedFileList,
+			payload: payload.GerritFileChangeMessage{
+				Files: changedFileList,
+			},
 		}
 	}, nil
 }

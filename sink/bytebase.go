@@ -68,9 +68,9 @@ func (sinker *bytebaseSinker) Mount() error {
 }
 
 func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{}) error {
-	files := pi.([]*payload.GerritChangedFile)
+	change := pi.(payload.GerritFileChangeMessage)
 
-	for _, file := range files {
+	for _, file := range change.Files {
 		mi, err := parseMigrationInfo(file.FileName, filePathTemplate)
 		if err != nil {
 			return err
