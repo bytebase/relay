@@ -47,19 +47,19 @@ func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
 		if gerritURL == "" {
 			return Response{
 				httpCode: http.StatusAccepted,
-				detail:   fmt.Sprintf("Skip, --gerrit-url is not set"),
+				detail:   "Skip, --gerrit-url is not set",
 			}
 		}
 		if gerritAccount == "" {
 			return Response{
 				httpCode: http.StatusAccepted,
-				detail:   fmt.Sprintf("Skip, --gerrit-account is not set"),
+				detail:   "Skip, --gerrit-account is not set",
 			}
 		}
 		if gerritPassword == "" {
 			return Response{
 				httpCode: http.StatusAccepted,
-				detail:   fmt.Sprintf("Skip, --gerrit-password is not set"),
+				detail:   "Skip, --gerrit-password is not set",
 			}
 		}
 
