@@ -59,8 +59,17 @@ type migrationInfo struct {
 }
 
 func (sinker *bytebaseSinker) Mount() error {
-	if bytebaseURL == "" || bytebaseServiceAccount == "" || bytebaseServiceKey == "" {
-		return fmt.Errorf(`the "--bytebase-url, --bytebase-service-account and --bytebase-service-key" is required`)
+	if bytebaseURL == "" {
+		fmt.Printf("--bytebase-url is missing, Bytebase sinker will not be able to process any events.\n")
+		return nil
+	}
+	if bytebaseServiceAccount == "" {
+		fmt.Printf("--bytebase-service-account is missing, Bytebase sinker will not be able to process any events.\n")
+		return nil
+	}
+	if bytebaseServiceKey == "" {
+		fmt.Printf("---bytebase-service-key is missing, Bytebase sinker will not be able to process any events.\n")
+		return nil
 	}
 
 	sinker.bytebaseService = service.NewBytebase(bytebaseURL, bytebaseServiceAccount, bytebaseServiceKey)
@@ -68,6 +77,16 @@ func (sinker *bytebaseSinker) Mount() error {
 }
 
 func (sinker *bytebaseSinker) Process(c context.Context, _ string, pi interface{}) error {
+	if bytebaseURL == "" {
+		return fmt.Errorf("--bytebase-url is required")
+	}
+	if bytebaseServiceAccount == "" {
+		return fmt.Errorf("--bytebase-service-account is required")
+	}
+	if bytebaseServiceKey == "" {
+		return fmt.Errorf("---bytebase-service-key is required")
+	}
+
 	change := pi.(payload.GerritFileChangeMessage)
 
 	for _, file := range change.Files {

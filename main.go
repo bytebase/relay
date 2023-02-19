@@ -60,7 +60,7 @@ func main() {
 		h = fields[0]
 		port, err := strconv.Atoi(fields[1])
 		if err != nil {
-			fmt.Printf("Port is not a number: %s", fields[1])
+			fmt.Printf("Port is not a number: %s\n", fields[1])
 			os.Exit(1)
 		}
 		p = port

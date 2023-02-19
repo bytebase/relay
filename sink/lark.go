@@ -38,12 +38,15 @@ type larkSinker struct {
 
 func (sinker *larkSinker) Mount() error {
 	if webhookURLs == "" {
-		return fmt.Errorf(`the "--lark-urls" is required`)
+		fmt.Printf("--lark-urls is missing, Lark sinker will not be able to process any events.\n")
 	}
 	return nil
 }
 
 func (sinker *larkSinker) Process(c context.Context, path string, pi interface{}) error {
+	if webhookURLs == "" {
+		return fmt.Errorf("--lark-urls is required")
+	}
 	switch path {
 	case "/github":
 		p := pi.(payload.GitHubPushEvent)

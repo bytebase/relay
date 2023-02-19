@@ -43,11 +43,26 @@ type gerritHooker struct {
 }
 
 func (hooker *gerritHooker) handler() (func(r *http.Request) Response, error) {
-	if gerritURL == "" || gerritAccount == "" || gerritPassword == "" {
-		return nil, fmt.Errorf(`the "--gerrit-url, --gerrit-account and --gerrit-password" is required`)
-	}
-
 	return func(r *http.Request) Response {
+		if gerritURL == "" {
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   "Skip, --gerrit-url is not set",
+			}
+		}
+		if gerritAccount == "" {
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   "Skip, --gerrit-account is not set",
+			}
+		}
+		if gerritPassword == "" {
+			return Response{
+				httpCode: http.StatusAccepted,
+				detail:   "Skip, --gerrit-password is not set",
+			}
+		}
+
 		var message payload.GerritEvent
 		err := json.NewDecoder(r.Body).Decode(&message)
 		if err != nil {
