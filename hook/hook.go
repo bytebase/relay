@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -41,15 +42,17 @@ var (
 // you pass the [bar, baz] sink list.
 //
 // e.g  hook.Mount(fs, f, "/foo", fooHook, [barSink, bazSink])
-func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
+func Mount(f *flamego.Flame, path string, method string, h Hooker, ss []sink.Sinker) {
 	if h == nil {
 		panic("hook: Mount hooker is nil")
 	}
 
 	hookersMu.Lock()
 	defer hookersMu.Unlock()
-	if _, dup := hookers[path]; dup {
-		panic("hook: Mount called twice for hooker " + path)
+
+	key := fmt.Sprintf("[%s] %s", method, path)
+	if _, dup := hookers[key]; dup {
+		panic("hook: Mount called twice for hooker " + key)
 	}
 	handler, err := h.handler()
 	if err != nil {
@@ -62,7 +65,7 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 		}
 	}
 
-	f.Post(path, func(r *http.Request) (int, string) {
+	process := func(r *http.Request) (int, string) {
 		resp := handler(r)
 
 		if resp.httpCode == http.StatusOK {
@@ -75,10 +78,25 @@ func Mount(f *flamego.Flame, path string, h Hooker, ss []sink.Sinker) {
 			if result != nil {
 				return http.StatusInternalServerError, fmt.Sprintf("Encountered error send to sink %q: %v", path, err)
 			}
-			return http.StatusOK, "OK"
+			bytes, err := json.Marshal(resp.payload)
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Sprintf("Encountered error when marshal response: %v", err)
+			}
+			return http.StatusOK, string(bytes)
 		}
 		return resp.httpCode, resp.detail
-	})
+	}
 
-	hookers[path] = h
+	switch method {
+	case http.MethodPost:
+		f.Post(path, process)
+	case http.MethodPatch:
+		f.Patch(path, process)
+	case http.MethodGet:
+		f.Get(path, process)
+	default:
+		panic("hook: unsupport method " + method)
+	}
+
+	hookers[key] = h
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/bytebase/relay/hook"
+	"github.com/bytebase/relay/payload"
 	"github.com/bytebase/relay/sink"
 	"github.com/flamego/flamego"
 	flag "github.com/spf13/pflag"
@@ -53,6 +55,10 @@ func init() {
 func main() {
 	flag.Parse()
 
+	state := &payload.GlobalState{
+		IssueList: map[string]*payload.Issue{},
+	}
+
 	h := "localhost"
 	p := 5678
 	if address != "" {
@@ -66,13 +72,19 @@ func main() {
 		p = port
 	}
 	f := flamego.Classic()
-	github := hook.NewGitHub()
-	lark := sink.NewLark()
-	hook.Mount(f, "/github", github, []sink.Sinker{lark})
 
-	gerrit := hook.NewGerrit()
-	bytebase := sink.NewBytebase()
-	hook.Mount(f, "/gerrit", gerrit, []sink.Sinker{bytebase})
+	// github := hook.NewGitHub()
+	// lark := sink.NewLark()
+	// hook.Mount(f, "/github", http.MethodPost, github, []sink.Sinker{lark})
+
+	// gerrit := hook.NewGerrit()
+	// bytebase := sink.NewBytebase()
+	// hook.Mount(f, "/gerrit", http.MethodPost, gerrit, []sink.Sinker{bytebase})
+
+	bytebaseHook := hook.NewBytebase(state)
+	hook.Mount(f, "/approval", http.MethodPost, bytebaseHook, []sink.Sinker{sink.NewScheduler(state)})
+	hook.Mount(f, "/approval/{*}", http.MethodPatch, bytebaseHook, []sink.Sinker{})
+	hook.Mount(f, "/approval/{*}", http.MethodGet, bytebaseHook, []sink.Sinker{})
 
 	// Setup signal handlers.
 	ctx, cancel := context.WithCancel(context.Background())
